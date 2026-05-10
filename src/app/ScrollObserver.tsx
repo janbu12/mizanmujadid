@@ -15,8 +15,8 @@ export default function ScrollObserver() {
     window.addEventListener("scroll", handleScroll);
     handleScroll();
 
-    // Reveal animations - run after a frame to ensure DOM is painted
-    const rafId = requestAnimationFrame(() => {
+    // Reveal animations - run after a small delay to ensure page is stable
+    const timeoutId = setTimeout(() => {
       const revealElements = document.querySelectorAll(".reveal:not(.active)");
 
       const revealObserver = new IntersectionObserver(
@@ -28,7 +28,7 @@ export default function ScrollObserver() {
             }
           });
         },
-        { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+        { threshold: 0.2, rootMargin: "0px 0px -10% 0px" }
       );
 
       revealElements.forEach((el) => {
@@ -57,7 +57,7 @@ export default function ScrollObserver() {
     window.addEventListener("pageshow", handlePageShow);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("pageshow", handlePageShow);
       if (window.__revealCleanup) window.__revealCleanup();
