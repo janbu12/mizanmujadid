@@ -1,19 +1,24 @@
 import dbConnect from '@/lib/mongodb';
 import Project from '@/models/Project';
 import { Navbar, Footer } from '@/components/Shared';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Calendar } from 'lucide-react';
 import { PROJECT_SORT } from '@/lib/constants';
+import { formatProjectDate } from '@/lib/dateUtils';
+import { Project as ProjectType } from '@/types/project';
 
 export default async function ProjectsPage() {
   await dbConnect();
   // Fetch all projects (without limit)
   const projects = await Project.find({}).sort(PROJECT_SORT).lean();
   
-  const portfolioData = projects.map(p => ({
+  const portfolioData: ProjectType[] = projects.map(p => ({
     id: p._id.toString(),
     title: p.title,
     description: p.description,
     tags: p.tags,
+    startDate: p.startDate ? p.startDate.toISOString() : undefined,
+    endDate: p.endDate ? p.endDate.toISOString() : undefined,
+    isOngoing: p.isOngoing,
     image: p.image
   }));
 
@@ -34,7 +39,7 @@ export default async function ProjectsPage() {
         <div className="container">
           <div className="gallery-grid">
             {portfolioData.map((project, index) => (
-              <div key={project.id} className={`gallery-item reveal delay-${(index % 3) + 1}`}>
+              <div key={project.id} className="gallery-item reveal">
                 <div className="gallery-image-wrapper">
                   {project.image ? (
                     <img src={project.image} alt={project.title} className="gallery-image" />
@@ -44,11 +49,16 @@ export default async function ProjectsPage() {
                   <div className="gallery-overlay">
                     <div className="gallery-content">
                       <div className="gallery-tags">
-                        {project.tags?.map(tag => (
+                        {project.tags?.map((tag: string) => (
                           <span key={tag} className="gallery-tag">{tag}</span>
                         ))}
                       </div>
                       <h3 className="gallery-title">{project.title}</h3>
+                      <div className="gallery-duration" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--accent-orange)', marginBottom: '12px', fontWeight: 600 }}>
+                        <Calendar size={12} />
+                        {formatProjectDate(project.startDate, project.endDate, project.isOngoing)}
+                        {project.isOngoing && <span style={{ backgroundColor: 'var(--accent-orange)', color: '#000', padding: '1px 6px', borderRadius: '3px', fontSize: '9px' }}>ONGOING</span>}
+                      </div>
                       <p className="gallery-desc">{project.description}</p>
                       <div className="gallery-link">
                         View Project <ArrowUpRight size={18} className="arrow" />

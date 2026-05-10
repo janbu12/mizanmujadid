@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight, Target } from 'lucide-react';
+import { ArrowRight, Target, Calendar } from 'lucide-react';
 import { FaLinkedin, FaGithub, FaDribbble, FaInstagram } from 'react-icons/fa';
+import { formatProjectDate } from '@/lib/dateUtils';
+import { Project } from '@/types/project';
 
 export function Navbar() {
   return (
@@ -10,8 +12,9 @@ export function Navbar() {
           MIZ<span className="dot">.</span>
         </Link>
         <div className="nav-links">
-          <Link href="/#services">Services</Link>
+          <Link href="/">Home</Link>
           <Link href="/#about">About</Link>
+          <Link href="/#services">Services</Link>
           <Link href="/projects">Works</Link>
         </div>
         <Link href="/#contact" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>
@@ -44,12 +47,12 @@ export function Footer() {
             <div className="footer-col">
               <h4>Services</h4>
               <ul>
-                <li><Link href="/#services">Design &amp; Discovery</Link></li>
-                <li><Link href="/#services">UX/UI Design</Link></li>
                 <li><Link href="/#services">Web Development</Link></li>
-                <li><Link href="/#services">Mobile Development</Link></li>
-                <li><Link href="/#services">Startups, MVPs &amp; POCs</Link></li>
-                <li><Link href="/#services">QA &amp; Testing</Link></li>
+                <li><Link href="/#services">Mobile App</Link></li>
+                <li><Link href="/#services">Desktop Applications</Link></li>
+                <li><Link href="/#services">API & Backend Architecture</Link></li>
+                <li><Link href="/#services">Fullstack Solutions</Link></li>
+                <li><Link href="/#services">QA & Maintenance</Link></li>
               </ul>
             </div>
             <div className="footer-col">
@@ -69,18 +72,18 @@ export function Footer() {
         </div>
 
         <div className="footer-huge-text reveal delay-1">
-          MIZAN DEV
+          MIZAN
         </div>
 
         <div className="footer-bottom">
-          &copy; {new Date().getFullYear()} - Mizan Dev | All rights reserved.
+          &copy; {new Date().getFullYear()} - Muhammad Mizan Al Mujadid | All rights reserved.
         </div>
       </div>
     </footer>
   );
 }
 
-export function WorksSection({ portfolioData }: { portfolioData: any[] }) {
+export function WorksSection({ portfolioData }: { portfolioData: Project[] }) {
   return (
     <section className="section" id="works">
       <div className="container">
@@ -105,9 +108,18 @@ export function WorksSection({ portfolioData }: { portfolioData: any[] }) {
                 <div className="work-logo">
                   <span className="icon"><Target size={16} /></span> MIZAN PORTFOLIO
                 </div>
+                <div className="work-duration" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--accent-orange)', fontWeight: 600, marginBottom: '8px' }}>
+                  <Calendar size={14} />
+                  {formatProjectDate(work.startDate, work.endDate, work.isOngoing)}
+                  {work.isOngoing && <span className="status-badge" style={{ backgroundColor: 'var(--accent-orange)', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>ONGOING</span>}
+                </div>
                 <h3>{work.title}</h3>
                 <p>{work.description}</p>
-                <div className="work-tag">{work.tags?.join(' / ')}</div>
+                <div className="work-tags">
+                  {work.tags?.map((tag: string, i: number) => (
+                    <span key={i} className="work-tag">{tag}</span>
+                  ))}
+                </div>
                 <div>
                   <Link href={`/projects/${work.id}`} className="btn btn-outline">
                     <span className="btn-inner-text">View Case Study</span>
