@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "title": "NEMAFI - ISP Landing Page",
+    "description": "Modern landing page for NEMAFI, an Internet Service Provider (ISP). Features a dark, sleek UI displaying fiber plans, speeds up to 500 Mbps, and AI-powered recommendations for seamless connectivity.",
+    "tags": ["WEB DEVELOPMENT", "UI/UX DESIGN", "ISP"],
+    "image": "/project/nemafi1.png"
+  },
+  {
+    "id": "2",
+    "title": "NMBT - Nordic Travel Portal",
+    "description": "A visually immersive travel platform for Nordic Mountain Bound Travelers (NMBT). Built with beautiful typography and large landscape imagery to inspire mountain exploration.",
+    "tags": ["WEB DESIGN", "TRAVEL", "UI/UX"],
+    "image": "/project/nordic.png"
+  },
+  {
+    "id": "3",
+    "title": "Vouki - Event Discovery Platform",
+    "description": "A comprehensive web application for discovering and organizing local events. The platform features event cards, categories like food, technology, and art, and a clean, user-friendly interface.",
+    "tags": ["WEB APP", "EVENTS", "FRONTEND"],
+    "image": "/project/vouki.png"
+  },
+  {
+    "id": "4",
+    "title": "PD. Batu Hias - Admin Dashboard",
+    "description": "A robust administrative dashboard built for PD. Batu Hias to track daily transactions and revenue. Features interactive charts, dark mode UI, and financial summary cards.",
+    "tags": ["DASHBOARD", "ANALYTICS", "UI/UX"],
+    "image": "/project/pdbatuhias.png"
+  },
+  {
+    "id": "5",
+    "title": "Djaman Coffee - Cafe Website",
+    "description": "An elegant and warm website for Djaman Coffee. Designed to showcase their crafted daily coffee, menu, and reservation system with a natural, green-tinted aesthetic.",
+    "tags": ["WEB DESIGN", "F&B", "UI/UX"],
+    "image": "/project/djaman.png"
+  },
+  {
+    "id": "6",
+    "title": "Project B - Museum Booking App",
+    "description": "A minimal, modern booking interface for art exhibitions. Allows users to explore curated contemporary masterpieces and seamlessly select dates and times for their visit.",
+    "tags": ["MOBILE UI", "BOOKING", "DESIGN"],
+    "image": "/project/uimuseum.png"
+  },
+  {
+    "id": "7",
+    "title": "Ceramics E-Commerce App",
+    "description": "A premium mobile e-commerce application for selling ceramic goods. Features a soft, earthy color palette, category navigation, and beautiful product showcases for vases and mugs.",
+    "tags": ["MOBILE APP", "E-COMMERCE", "UI/UX"],
+    "image": "/project/uiceramic.png"
+  },
+  {
+    "id": "8",
+    "title": "NoePOS - Point of Sale",
+    "description": "A secure and efficient Point of Sale (POS) login interface featuring a clean PIN pad entry system and user shift history tracking for retail staff.",
+    "tags": ["POS SYSTEM", "UI DESIGN", "WEB APP"],
+    "image": "/project/posapp.png"
+  }
+]
