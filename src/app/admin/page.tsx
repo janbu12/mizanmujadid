@@ -3,19 +3,27 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, LogOut, Upload, Link as LinkIcon, Hash, Type, FileText, Move } from 'lucide-react';
+import { Plus, Edit, Trash2, LogOut } from 'lucide-react';
+import { ProjectModal, DeleteConfirmModal } from '@/components/AdminModals';
+import { toast } from 'sonner';
+import { Project, ProjectFormData } from '@/types/project';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [formData, setFormData] = useState({ 
-    id: '', title: '', description: '', tags: '', image: '',
+  const [formData, setFormData] = useState<ProjectFormData>({ 
+    title: '', description: '', tags: '', image: '',
     startDate: '', endDate: '', isOngoing: false 
   });
+  
+  // Modal states
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -53,12 +61,13 @@ export default function AdminPage() {
       });
       const json = await res.json();
       if (json.url) {
-        setFormData({ ...formData, image: json.url });
+        setFormData(prev => ({ ...prev, image: json.url }));
+        toast.success('Image uploaded to Cloudflare R2 successfully!');
       } else {
-        alert('Upload failed: ' + (json.error || 'Unknown error'));
+        toast.error('Upload failed: ' + (json.error || 'Unknown error'));
       }
     } catch (err) {
-      alert('Upload failed');
+      toast.error('Critical upload error. Check your connection.');
     }
     setUploading(false);
   };
@@ -68,7 +77,7 @@ export default function AdminPage() {
     const payload = {
       title: formData.title,
       description: formData.description,
-      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : formData.tags,
       image: formData.image,
       startDate: formData.startDate || null,
       endDate: formData.isOngoing ? null : (formData.endDate || null),
@@ -85,37 +94,56 @@ export default function AdminPage() {
     });
 
     if (res.ok) {
-      setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false });
-      setIsEditing(false);
+      closeProjectModal();
       fetchProjects();
+      toast.success(isEditing ? 'Project updated successfully!' : 'New project created successfully!');
     } else {
-      alert('Failed to save project');
+      toast.error('Failed to save project. Please try again.');
     }
   };
 
-  const handleEdit = (p: any) => {
+  const handleEdit = (p: Project) => {
     setFormData({
       id: p._id,
       title: p.title,
       description: p.description,
-      tags: p.tags.join(', '),
+      tags: Array.isArray(p.tags) ? p.tags.join(', ') : p.tags,
       image: p.image,
       startDate: p.startDate ? new Date(p.startDate).toISOString().split('T')[0] : '',
       endDate: p.endDate ? new Date(p.endDate).toISOString().split('T')[0] : '',
       isOngoing: p.isOngoing || false
-    });
+    } as ProjectFormData);
     setIsEditing(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsProjectModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
-    const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+  const openDeleteModal = (p: Project) => {
+    setProjectToDelete(p);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!projectToDelete) return;
+    const res = await fetch(`/api/projects/${projectToDelete._id}`, { method: 'DELETE' });
     if (res.ok) {
+      setIsDeleteModalOpen(false);
+      setProjectToDelete(null);
       fetchProjects();
+      toast.success('Project deleted and image removed from R2.');
     } else {
-      alert('Delete failed');
+      toast.error('Failed to delete project.');
     }
+  };
+
+  const openAddModal = () => {
+    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false });
+    setIsEditing(false);
+    setIsProjectModalOpen(true);
+  };
+
+  const closeProjectModal = () => {
+    setIsProjectModalOpen(false);
+    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false });
   };
 
   if (status === 'loading' || loading) return <div className="admin-container" style={{color: 'white'}}>Loading dashboard...</div>;
@@ -127,149 +155,91 @@ export default function AdminPage() {
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px' }}>Project CMS</h1>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Logged in as {session?.user?.email}</p>
         </div>
-        <button onClick={() => signOut()} className="btn btn-outline">
-          <span className="btn-inner-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
-            <LogOut size={16} /> Sign Out
-          </span>
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={openAddModal} className="btn btn-primary">
+            <span className="btn-inner-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
+              <Plus size={16} /> New Project
+            </span>
+          </button>
+          <button onClick={() => signOut()} className="btn btn-outline">
+            <span className="btn-inner-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
+              <LogOut size={16} /> Sign Out
+            </span>
+          </button>
+        </div>
       </header>
 
-      <div className="admin-grid">
-        {/* Form Panel */}
-        <aside className="admin-panel">
-          <h3>
-            {isEditing ? <Edit size={18} style={{marginRight: '8px'}} /> : <Plus size={18} style={{marginRight: '8px'}} />}
-            {isEditing ? 'Edit Project' : 'New Project'}
+      <main className="admin-main">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', fontSize: '14px', letterSpacing: '2px', color: 'var(--accent-orange)' }}>
+            Project Repository ({projects.length})
           </h3>
-          
-          <form onSubmit={handleSubmit}>
-            <div className="admin-form-group">
-              <label><Type size={12} style={{marginRight: '6px'}}/> Title</label>
-              <input type="text" className="admin-input" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Project name" required />
-            </div>
+        </div>
 
-            <div className="admin-form-group">
-              <label><FileText size={12} style={{marginRight: '6px'}}/> Description</label>
-              <textarea className="admin-input" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Describe the project..." required rows={4} />
-            </div>
-
-            <div className="admin-form-group">
-              <label><Hash size={12} style={{marginRight: '6px'}}/> Tags</label>
-              <input type="text" className="admin-input" value={formData.tags} onChange={e => setFormData({...formData, tags: e.target.value})} placeholder="React, Fastify, Docker..." />
-            </div>
-
-            <div className="admin-form-group">
-              <label><Move size={12} style={{marginRight: '6px'}}/> Project Period</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '10px' }}>Start Date</label>
-                  <input type="date" className="admin-input" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '10px' }}>End Date</label>
-                  <input type="date" className="admin-input" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} disabled={formData.isOngoing} />
-                </div>
-              </div>
-              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="checkbox" id="isOngoing" checked={formData.isOngoing} onChange={e => setFormData({...formData, isOngoing: e.target.checked})} />
-                <label htmlFor="isOngoing" style={{ fontSize: '12px', textTransform: 'none', margin: 0, cursor: 'pointer' }}>Project is currently ongoing</label>
-              </div>
-            </div>
-
-            <div className="admin-form-group">
-              <label><Upload size={12} style={{marginRight: '6px'}}/> Cover Image</label>
-              <div className="custom-file-upload">
-                <input 
-                  type="file" 
-                  id="file-upload"
-                  accept="image/*" 
-                  onChange={handleFileChange} 
-                  style={{ display: 'none' }} 
-                />
-                <label htmlFor="file-upload" className="file-upload-label">
-                  <Upload size={20} />
-                  <span>{uploading ? 'Uploading to R2...' : 'Click to upload image'}</span>
-                </label>
-              </div>
-              {uploading && <span className="upload-status" style={{color: 'var(--accent-orange)'}}>Synchronizing with Cloudflare R2...</span>}
-            </div>
-
-            <div className="admin-form-group">
-              <label><LinkIcon size={12} style={{marginRight: '6px'}}/> Image URL</label>
-              <input type="text" className="admin-input" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="https://..." required />
-              {formData.image && (
-                <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--card-border)' }}>
-                  <img src={formData.image} alt="Preview" style={{ width: '100%', display: 'block' }} />
-                </div>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-              <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={uploading}>
-                <span className="btn-inner-text">
-                  {isEditing ? 'Save Changes' : 'Create Project'}
-                </span>
-              </button>
-              {isEditing && (
-                <button type="button" onClick={() => { setIsEditing(false); setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false }); }} className="btn btn-outline">
-                  <span className="btn-inner-text">Cancel</span>
-                </button>
-              )}
-            </div>
-          </form>
-        </aside>
-
-        {/* Project List */}
-        <main>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', fontSize: '14px', letterSpacing: '2px' }}>
-              Project List ({projects.length})
-            </h3>
+        {projects.length === 0 ? (
+          <div className="admin-empty-state">
+            <p>Your repository is empty. Start by adding a new masterpiece!</p>
+            <button onClick={openAddModal} className="btn btn-primary" style={{ marginTop: '24px' }}>
+               <span className="btn-inner-text">Create Project</span>
+            </button>
           </div>
-
-          {projects.length === 0 ? (
-            <div className="admin-empty-state">
-              <p>No projects found. Create your first one!</p>
-            </div>
-          ) : (
-            <div className="project-list-admin">
-              {projects.map(p => (
-                <div key={p._id} className="project-card-admin">
-                  <img src={p.image} alt={p.title} />
-                  <div className="project-admin-content">
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'}}>
-                      <h4 style={{fontSize: '18px', marginBottom: '6px'}}>{p.title}</h4>
-                      <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-                         <span style={{fontSize: '10px', background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', color: 'var(--text-muted)'}}>
-                          {p.startDate ? new Date(p.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'} - {p.isOngoing ? 'Present' : (p.endDate ? new Date(p.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A')}
-                        </span>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.5' }}>
-                      {p.description.substring(0, 100)}{p.description.length > 100 ? '...' : ''}
-                    </p>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        ) : (
+          <div className="project-list-admin">
+            {projects.map(p => (
+              <div key={p._id} className="project-card-admin">
+                <img src={p.image} alt={p.title} />
+                <div className="project-admin-content">
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'}}>
+                    <h4 style={{fontSize: '20px', marginBottom: '8px', fontWeight: '600'}}>{p.title}</h4>
+                    <span style={{fontSize: '11px', background: 'var(--bg-tertiary)', padding: '4px 12px', borderRadius: '6px', color: 'var(--text-muted)', border: '1px solid var(--card-border)'}}>
+                      {p.startDate ? new Date(p.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'} - {p.isOngoing ? 'Present' : (p.endDate ? new Date(p.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A')}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6', maxWidth: '800px' }}>
+                    {p.description.substring(0, 160)}{p.description.length > 160 ? '...' : ''}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {p.tags.map((tag: string) => (
-                        <span key={tag} style={{ fontSize: '9px', background: 'rgba(255,102,0,0.1)', color: 'var(--accent-orange)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,102,0,0.2)' }}>
+                        <span key={tag} style={{ fontSize: '10px', background: 'rgba(255,102,0,0.05)', color: 'var(--accent-orange)', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(255,102,0,0.2)' }}>
                           {tag}
                         </span>
                       ))}
                     </div>
                     <div className="project-admin-actions">
-                      <button onClick={() => handleEdit(p)} className="admin-btn-edit">
-                        <Edit size={12} style={{marginRight: '4px'}} /> Edit
+                      <button onClick={() => handleEdit(p)} className="admin-btn-edit" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Edit size={14} /> Edit
                       </button>
-                      <button onClick={() => handleDelete(p._id)} className="admin-btn-delete">
-                        <Trash2 size={12} style={{marginRight: '4px'}} /> Delete
+                      <button onClick={() => openDeleteModal(p)} className="admin-btn-delete" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Modals */}
+      <ProjectModal 
+        isOpen={isProjectModalOpen}
+        onClose={closeProjectModal}
+        isEditing={isEditing}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        uploading={uploading}
+        handleFileChange={handleFileChange}
+      />
+
+      <DeleteConfirmModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title={projectToDelete?.title || ''}
+      />
     </div>
   );
 }
