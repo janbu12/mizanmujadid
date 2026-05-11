@@ -1030,6 +1030,49 @@ ul { list-style: none; }
   color: var(--text-muted);
 }
 
+@media (max-width: 768px) {
+  .gallery-overlay {
+    opacity: 0; /* Hidden by default */
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.6) 70%, transparent 100%);
+    pointer-events: none; /* Let clicks pass through to the parent when hidden */
+  }
+  
+  .gallery-item.mobile-active .gallery-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .gallery-item.mobile-active .gallery-content {
+    transform: translateY(0) !important;
+  }
+  
+  .gallery-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .gallery-desc {
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .gallery-tags {
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .gallery-tag {
+    font-size: 8px;
+    padding: 2px 8px;
+  }
+}
+
 /* Admin Styles */
 .admin-container {
   padding: 40px 24px;
