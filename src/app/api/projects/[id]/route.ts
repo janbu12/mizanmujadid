@@ -4,6 +4,7 @@ import Project from '@/models/Project';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { deleteS3Object } from '@/lib/s3';
+import { revalidatePath } from 'next/cache';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -28,7 +29,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       await deleteS3Object(oldProject.image);
     }
 
-    const project = await Project.findByIdAndUpdate(id, data, { new: true });
+    const project = await Project.findByIdAndUpdate(id, data, { returnDocument: 'after' });
+    
+    // Force Next.js to update the static pages
+    revalidatePath('/');
+    revalidatePath('/projects');
+    
     return NextResponse.json(project);
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
@@ -51,6 +57,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     await Project.findByIdAndDelete(id);
+    
+    // Force Next.js to update the static pages
+    revalidatePath('/');
+    revalidatePath('/projects');
+    
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
