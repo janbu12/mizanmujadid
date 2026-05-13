@@ -34,6 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     // Force Next.js to update the static pages
     revalidatePath('/');
     revalidatePath('/projects');
+    revalidatePath(`/projects/${id}`);
     
     return NextResponse.json(project);
   } catch (error: any) {

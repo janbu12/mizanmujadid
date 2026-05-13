@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     // Force Next.js to update the static pages
     revalidatePath('/');
     revalidatePath('/projects');
+    revalidatePath(`/projects/${project._id}`);
     
     return NextResponse.json(project);
   } catch (error: any) {

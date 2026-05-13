@@ -17,15 +17,16 @@ export default function AdminPage() {
   
   const [formData, setFormData] = useState<ProjectFormData>({ 
     title: '', description: '', tags: '', image: '',
-    startDate: '', endDate: '', isOngoing: false 
+    startDate: '', endDate: '', isOngoing: false,
+    content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: []
   });
   
-  // Modal states
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -62,26 +63,59 @@ export default function AdminPage() {
       const json = await res.json();
       if (json.url) {
         setFormData(prev => ({ ...prev, image: json.url }));
-        toast.success('Image uploaded to Cloudflare R2 successfully!');
+        toast.success('Cover image uploaded to Cloudflare R2!');
       } else {
         toast.error('Upload failed: ' + (json.error || 'Unknown error'));
       }
     } catch (err) {
-      toast.error('Critical upload error. Check your connection.');
+      toast.error('Critical upload error.');
     }
     setUploading(false);
+  };
+
+  const handleGalleryFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setGalleryUploading(true);
+    const files = Array.from(e.target.files);
+    
+    const uploadPromises = files.map(async (file) => {
+      const data = new FormData();
+      data.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: data });
+      return res.json();
+    });
+
+    try {
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(r => r.url).filter(Boolean);
+      
+      setFormData(prev => ({
+        ...prev,
+        gallery: [...(prev.gallery || []), ...newUrls]
+      }));
+      
+      toast.success(`${newUrls.length} gallery images uploaded to Cloudflare!`);
+    } catch (err) {
+      toast.error('Failed to upload some gallery images.');
+    }
+    setGalleryUploading(false);
+    // Reset input
+    e.target.value = '';
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
-      title: formData.title,
-      description: formData.description,
+      ...formData,
       tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : formData.tags,
-      image: formData.image,
-      startDate: formData.startDate || null,
       endDate: formData.isOngoing ? null : (formData.endDate || null),
-      isOngoing: formData.isOngoing
     };
 
     const url = isEditing ? `/api/projects/${formData.id}` : '/api/projects';
@@ -98,7 +132,7 @@ export default function AdminPage() {
       fetchProjects();
       toast.success(isEditing ? 'Project updated successfully!' : 'New project created successfully!');
     } else {
-      toast.error('Failed to save project. Please try again.');
+      toast.error('Failed to save project.');
     }
   };
 
@@ -111,7 +145,13 @@ export default function AdminPage() {
       image: p.image,
       startDate: p.startDate ? new Date(p.startDate).toISOString().split('T')[0] : '',
       endDate: p.endDate ? new Date(p.endDate).toISOString().split('T')[0] : '',
-      isOngoing: p.isOngoing || false
+      isOngoing: p.isOngoing || false,
+      content: p.content || '',
+      client: p.client || '',
+      role: p.role || '',
+      githubUrl: p.githubUrl || '',
+      demoUrl: p.demoUrl || '',
+      gallery: Array.isArray(p.gallery) ? p.gallery : []
     } as ProjectFormData);
     setIsEditing(true);
     setIsProjectModalOpen(true);
@@ -129,21 +169,20 @@ export default function AdminPage() {
       setIsDeleteModalOpen(false);
       setProjectToDelete(null);
       fetchProjects();
-      toast.success('Project deleted and image removed from R2.');
+      toast.success('Project deleted successfully.');
     } else {
       toast.error('Failed to delete project.');
     }
   };
 
   const openAddModal = () => {
-    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false });
+    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false, content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: [] });
     setIsEditing(false);
     setIsProjectModalOpen(true);
   };
 
   const closeProjectModal = () => {
     setIsProjectModalOpen(false);
-    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false });
   };
 
   if (status === 'loading' || loading) return <div className="admin-container" style={{color: 'white'}}>Loading dashboard...</div>;
@@ -231,7 +270,10 @@ export default function AdminPage() {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         uploading={uploading}
+        galleryUploading={galleryUploading}
         handleFileChange={handleFileChange}
+        handleGalleryFiles={handleGalleryFiles}
+        removeGalleryImage={removeGalleryImage}
       />
 
       <DeleteConfirmModal 
