@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import OptimizedImage from '@/components/OptimizedImage';
 import { ArrowLeft, ExternalLink, Calendar, User, Briefcase, ArrowRight } from 'lucide-react';
 import { FaGithub } from 'react-icons/fa';
 import dbConnect from '@/lib/mongodb';
@@ -63,10 +64,15 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       <Navbar />
       
       {/* Dynamic Hero Section */}
-      <section 
-        className="project-detail-hero" 
-        style={{ backgroundImage: `url(${projectData.image})` }}
-      >
+      <section className="project-detail-hero">
+        <OptimizedImage 
+          src={projectData.image} 
+          alt={projectData.title}
+          fill
+          priority
+          className="hero-image"
+          style={{ objectFit: 'cover' }}
+        />
         <div className="hero-overlay" />
         
         <div className="hero-content-wrapper">
@@ -125,11 +131,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   <h2 style={{ fontSize: '32px', marginBottom: '40px' }}>Interface Exploration</h2>
                   <div className="gallery-grid-detail">
                     {projectData.gallery.map((img: string, idx: number) => (
-                      <div key={idx} className="gallery-item">
-                        <img 
+                      <div key={idx} className="gallery-item" style={{ position: 'relative', minHeight: '300px' }}>
+                        <OptimizedImage 
                           src={img} 
                           alt={`${projectData.title} exploration ${idx + 1}`}
-                          loading="lazy"
+                          fill
+                          className="gallery-image"
+                          style={{ objectFit: 'cover' }}
+                          sizes="(max-width: 768px) 100vw, 50vw"
                         />
                       </div>
                     ))}

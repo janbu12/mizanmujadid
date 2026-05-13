@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { ArrowUpRight, Calendar } from 'lucide-react';
 import { formatProjectDate } from '@/lib/dateUtils';
 import { Project as ProjectType } from '@/types/project';
 import Link from 'next/link';
+import OptimizedImage from './OptimizedImage';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProjectCardProps {
@@ -23,6 +24,7 @@ export default function ProjectCard({
   showTags = true 
 }: ProjectCardProps) {
   const lastInteractionTime = useRef(0);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(false);
 
   // Gunakan useEffect untuk mendeteksi layar setelah mount
@@ -52,6 +54,7 @@ export default function ProjectCard({
 
   return (
     <motion.div 
+      ref={cardRef}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -68,7 +71,14 @@ export default function ProjectCard({
     >
       <div className="gallery-image-wrapper">
         {project.image ? (
-          <img src={project.image} alt={project.title} className="gallery-image" />
+          <OptimizedImage 
+            src={project.image} 
+            alt={project.title} 
+            fill
+            className="gallery-image"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={85}
+          />
         ) : (
           <div className="gallery-placeholder">No Image Available</div>
         )}

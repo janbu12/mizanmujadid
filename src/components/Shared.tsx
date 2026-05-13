@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import OptimizedImage from './OptimizedImage';
 import { ArrowRight, Target, Calendar } from 'lucide-react';
 import { FaLinkedin, FaGithub, FaDribbble, FaInstagram } from 'react-icons/fa';
 import { formatProjectDate } from '@/lib/dateUtils';
@@ -129,7 +130,14 @@ export function WorksSection({ portfolioData }: { portfolioData: Project[] }) {
               </div>
               <div className="work-image-container" style={{ padding: 0, position: 'relative', overflow: 'hidden', borderRadius: '0 12px 12px 0' }}>
                 {work.image ? (
-                  <img src={work.image} alt={work.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                   <OptimizedImage 
+                    src={work.image} 
+                    alt={work.title} 
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    quality={90}
+                  />
                 ) : (
                   <div className="work-image-mock" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                     <div className="mockup-header"><div className="mockup-dot" /><div className="mockup-dot" /><div className="mockup-dot" /></div>
