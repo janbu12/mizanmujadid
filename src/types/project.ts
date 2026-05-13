@@ -14,6 +14,7 @@ export interface Project {
   isOngoing: boolean;
   client?: string; // Nama klien (opsional)
   role?: string; // Peran Anda (opsional)
+  slug: string;
 }
 
 export interface ProjectFormData {
@@ -31,4 +32,5 @@ export interface ProjectFormData {
   isOngoing: boolean;
   client?: string;
   role?: string;
+  slug: string;
 }

@@ -14,6 +14,7 @@ export interface IProject extends Document {
   isOngoing: boolean;
   client?: string;
   role?: string;
+  slug: string;
 }
 
 const ProjectSchema: Schema = new Schema({
@@ -29,7 +30,8 @@ const ProjectSchema: Schema = new Schema({
   endDate: { type: Date },
   isOngoing: { type: Boolean, default: false },
   client: { type: String },
-  role: { type: String }
+  role: { type: String },
+  slug: { type: String, required: true, unique: true, index: true }
 }, { timestamps: true });
 
 export default mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);
