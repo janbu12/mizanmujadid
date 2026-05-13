@@ -8,6 +8,16 @@ import { parseISO, format } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { ProjectFormData } from '@/types/project';
 
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Ganti spasi dengan -
+    .replace(/[^\w-]+/g, '')    // Hapus karakter non-word
+    .replace(/--+/g, '-');      // Ganti multiple - dengan single -
+};
+
 interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -122,6 +132,13 @@ export function ProjectModal({
     };
   }, [isOpen]);
 
+  // Auto-generate slug from title ONLY for new projects
+  useEffect(() => {
+    if (!isEditing && formData.title) {
+      setFormData({ ...formData, slug: slugify(formData.title) });
+    }
+  }, [formData.title, isEditing]);
+
   if (!isOpen) return null;
 
   return (
@@ -149,6 +166,30 @@ export function ProjectModal({
                 placeholder="e.g. NoePOS Redesign" 
                 required 
               />
+            </div>
+
+            <div className="admin-form-group">
+              <label><Hash size={12} style={{marginRight: '6px'}}/> Project Slug (URL Identifier)</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type="text" 
+                  className="admin-input" 
+                  value={formData.slug} 
+                  onChange={e => setFormData({...formData, slug: slugify(e.target.value)})} 
+                  placeholder="pd-batu-hias" 
+                  required 
+                />
+                <span style={{ 
+                  position: 'absolute', 
+                  right: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)',
+                  fontSize: '10px',
+                  color: 'var(--text-muted)'
+                }}>
+                  /projects/{formData.slug || '...'}
+                </span>
+              </div>
             </div>
 
             <div className="admin-form-group">

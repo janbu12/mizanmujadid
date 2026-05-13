@@ -18,7 +18,8 @@ export default function AdminPage() {
   const [formData, setFormData] = useState<ProjectFormData>({ 
     title: '', description: '', tags: '', image: '',
     startDate: '', endDate: '', isOngoing: false,
-    content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: []
+    content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: [],
+    slug: ''
   });
   
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -151,7 +152,8 @@ export default function AdminPage() {
       role: p.role || '',
       githubUrl: p.githubUrl || '',
       demoUrl: p.demoUrl || '',
-      gallery: Array.isArray(p.gallery) ? p.gallery : []
+      gallery: Array.isArray(p.gallery) ? p.gallery : [],
+      slug: p.slug || ''
     } as ProjectFormData);
     setIsEditing(true);
     setIsProjectModalOpen(true);
@@ -176,7 +178,7 @@ export default function AdminPage() {
   };
 
   const openAddModal = () => {
-    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false, content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: [] });
+    setFormData({ id: '', title: '', description: '', tags: '', image: '', startDate: '', endDate: '', isOngoing: false, content: '', client: '', role: '', githubUrl: '', demoUrl: '', gallery: [], slug: '' });
     setIsEditing(false);
     setIsProjectModalOpen(true);
   };
