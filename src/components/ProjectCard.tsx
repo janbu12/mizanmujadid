@@ -11,9 +11,17 @@ interface ProjectCardProps {
   project: ProjectType;
   isActive: boolean;
   onToggle: () => void;
+  showDescription?: boolean;
+  showTags?: boolean;
 }
 
-export default function ProjectCard({ project, isActive, onToggle }: ProjectCardProps) {
+export default function ProjectCard({ 
+  project, 
+  isActive, 
+  onToggle, 
+  showDescription = true,
+  showTags = true 
+}: ProjectCardProps) {
   const lastInteractionTime = useRef(0);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -76,25 +84,27 @@ export default function ProjectCard({ project, isActive, onToggle }: ProjectCard
                 transition={{ duration: 0.3 }}
                 className="gallery-content"
               >
-                <div 
-                  className="gallery-tags" 
-                  onPointerDown={(e) => e.stopPropagation()} 
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {project.tags?.map((tag: string) => (
-                    <span key={tag} className="gallery-tag">{tag}</span>
-                  ))}
-                </div>
+                {showTags && (
+                  <div 
+                    className="gallery-tags" 
+                    onPointerDown={(e) => e.stopPropagation()} 
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {project.tags?.map((tag: string) => (
+                      <span key={tag} className="gallery-tag">{tag}</span>
+                    ))}
+                  </div>
+                )}
                 <h3 className="gallery-title">{project.title}</h3>
                 <div className="gallery-duration" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--accent-orange)', marginBottom: '12px', fontWeight: 600 }}>
                   <Calendar size={12} />
                   {formatProjectDate(project.startDate, project.endDate, project.isOngoing)}
                   {project.isOngoing && <span style={{ backgroundColor: 'var(--accent-orange)', color: '#000', padding: '1px 6px', borderRadius: '3px', fontSize: '9px' }}>ONGOING</span>}
                 </div>
-                <p className="gallery-desc">{project.description}</p>
+                {showDescription && <p className="gallery-desc">{project.description}</p>}
                 
                 <div className="gallery-link-container" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-                  <Link href={`/projects/${project.id}`} className="gallery-link">
+                  <Link href={`/projects/${project.slug}`} className="gallery-link">
                     View Project <ArrowUpRight size={18} className="arrow" />
                   </Link>
                 </div>
