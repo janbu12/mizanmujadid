@@ -1,28 +1,55 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Calendar, User, Briefcase } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, User, Briefcase, ArrowRight } from 'lucide-react';
 import { FaGithub } from 'react-icons/fa';
 import dbConnect from '@/lib/mongodb';
 import Project from '@/models/Project';
 import { formatProjectDate } from '@/lib/dateUtils';
 import { Navbar, Footer } from '@/components/Shared';
+import { PROJECT_SORT } from '@/lib/constants';
+import RelatedProjectWrapper from './RelatedProjectWrapper';
 
 interface ProjectPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
-  const { id } = await params;
+  const { slug } = await params;
   await dbConnect();
   
+  // 1. Fetch current project
   let project;
   try {
-    project = await Project.findById(id).lean();
+    project = await Project.findOne({ slug }).lean();
   } catch (error) {
     return notFound();
   }
 
   if (!project) return notFound();
+
+  // 2. Fetch all projects for "Continue Exploring" logic
+  const allProjects = await Project.find({}).sort(PROJECT_SORT).lean();
+  
+  // Find current project index
+  const currentIndex = allProjects.findIndex(p => p._id.toString() === project._id.toString());
+  
+  // Calculate 4 projects to recommend (wrap around logic)
+  const recommendedProjects = [];
+  if (allProjects.length > 1) {
+    for (let i = 1; i <= 4; i++) {
+      if (recommendedProjects.length >= allProjects.length - 1) break; // Don't include current or repeat
+      const nextIndex = (currentIndex + i) % allProjects.length;
+      if (nextIndex !== currentIndex) {
+        const p = allProjects[nextIndex];
+        recommendedProjects.push({
+          ...p,
+          id: p._id.toString(),
+          startDate: p.startDate?.toISOString(),
+          endDate: p.endDate?.toISOString(),
+        });
+      }
+    }
+  }
 
   const projectData = {
     ...project,
@@ -172,6 +199,32 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Continue Exploring Section */}
+      {recommendedProjects.length > 0 && (
+        <section style={{ padding: '120px 0', borderTop: '1px solid var(--card-border)', marginTop: '100px' }}>
+          <div className="container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '60px' }}>
+              <div>
+                <div className="section-label" style={{ marginBottom: '16px' }}>Next Steps</div>
+                <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: '800' }}>Continue Exploring</h2>
+              </div>
+              <Link href="/projects" className="btn-text" style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                color: 'var(--text-muted)',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}>
+                View Full Archive <ArrowRight size={16} />
+              </Link>
+            </div>
+            
+            <RelatedProjectWrapper projects={recommendedProjects} />
+          </div>
+        </section>
+      )}
 
       <Footer />
     </main>

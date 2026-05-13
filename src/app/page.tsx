@@ -20,7 +20,8 @@ export default async function Home() {
     startDate: p.startDate ? p.startDate.toISOString() : undefined,
     endDate: p.endDate ? p.endDate.toISOString() : undefined,
     isOngoing: p.isOngoing,
-    image: p.image
+    image: p.image,
+    slug: p.slug
   }));
 
   return (

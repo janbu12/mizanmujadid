@@ -18,7 +18,8 @@ export default async function ProjectsPage() {
     startDate: p.startDate ? p.startDate.toISOString() : undefined,
     endDate: p.endDate ? p.endDate.toISOString() : undefined,
     isOngoing: p.isOngoing,
-    image: p.image
+    image: p.image,
+    slug: p.slug
   }));
 
   const allTags = portfolioData.flatMap(p => p.tags);

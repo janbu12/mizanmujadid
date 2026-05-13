@@ -121,7 +121,7 @@ export function WorksSection({ portfolioData }: { portfolioData: Project[] }) {
                   ))}
                 </div>
                 <div>
-                  <Link href={`/projects/${work.id}`} className="btn btn-outline">
+                  <Link href={`/projects/${work.slug}`} className="btn btn-outline">
                     <span className="btn-inner-text">View Case Study</span>
                     <span className="btn-inner-icon"><ArrowRight size={16} /></span>
                   </Link>
