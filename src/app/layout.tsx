@@ -30,8 +30,8 @@ const jsonLd = {
 
 import { Providers } from "@/components/Providers";
 import ScrollObserver from './ScrollObserver';
-import SmoothScrollProvider from '@/components/SmoothScroll';
 import CustomCursor from '@/components/CustomCursor';
+import ScrollProgress from '@/components/ScrollProgress';
 
 export default function RootLayout({
   children,
@@ -49,10 +49,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <CustomCursor />
-          <SmoothScrollProvider>
-            <ScrollObserver />
-            {children}
-          </SmoothScrollProvider>
+          <ScrollProgress />
+          <ScrollObserver />
+          {children}
         </Providers>
       </body>
     </html>
