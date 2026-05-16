@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: ['promodernistic-distensible-kieth.ngrok-free.dev'],
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
