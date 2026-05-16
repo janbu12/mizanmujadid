@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import OptimizedImage from '@/components/OptimizedImage';
+import LightboxGallery from '@/components/LightboxGallery';
 import { ArrowLeft, ExternalLink, Calendar, User, Briefcase, ArrowRight } from 'lucide-react';
 import { FaGithub } from 'react-icons/fa';
 import dbConnect from '@/lib/mongodb';
@@ -12,6 +13,51 @@ import RelatedProjectWrapper from './RelatedProjectWrapper';
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
+}
+
+import { Metadata } from 'next';
+
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  await dbConnect();
+  
+  const project = await Project.findOne({ slug }).lean();
+  
+  if (!project) {
+    return {
+      title: 'Project Not Found | Mizan Mujadid',
+    };
+  }
+
+  const title = `${project.title} | Curated Works - Mizan Mujadid`;
+  const description = project.description.substring(0, 160);
+  const ogImage = project.image;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://mizanmujadid.com/projects/${slug}`,
+      siteName: 'Mizan Mujadid Portfolio',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: project.title,
+        },
+      ],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
+  };
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
@@ -129,20 +175,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 <div className="gallery-section" style={{ marginTop: '100px' }}>
                   <div className="section-label" style={{ marginBottom: '16px' }}>Showcase</div>
                   <h2 style={{ fontSize: '32px', marginBottom: '40px' }}>Interface Exploration</h2>
-                  <div className="gallery-grid-detail">
-                    {projectData.gallery.map((img: string, idx: number) => (
-                      <div key={idx} className="gallery-item" style={{ position: 'relative', minHeight: '300px' }}>
-                        <OptimizedImage 
-                          src={img} 
-                          alt={`${projectData.title} exploration ${idx + 1}`}
-                          fill
-                          className="gallery-image"
-                          style={{ objectFit: 'cover' }}
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <LightboxGallery images={projectData.gallery} title={projectData.title} />
                 </div>
               )}
             </div>
