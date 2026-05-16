@@ -5,6 +5,8 @@ import { FaLinkedin, FaGithub, FaDribbble, FaInstagram } from 'react-icons/fa';
 import { formatProjectDate } from '@/lib/dateUtils';
 import { Project } from '@/types/project';
 
+import MagneticWrapper from './MagneticWrapper';
+
 export function Navbar() {
   return (
     <nav className="navbar" id="navbar">
@@ -18,9 +20,11 @@ export function Navbar() {
           <Link href="/#services">Services</Link>
           <Link href="/projects">Works</Link>
         </div>
-        <Link href="/#contact" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>
-          <span className="btn-inner-text">Contact Me</span>
-        </Link>
+        <MagneticWrapper pullFactor={0.2}>
+          <Link href="/#contact" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>
+            <span className="btn-inner-text">Contact Me</span>
+          </Link>
+        </MagneticWrapper>
       </div>
     </nav>
   );
